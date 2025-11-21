@@ -67,6 +67,7 @@ def login_api_view(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
+        request.session.save()  # Explicitly save session
         return Response({
             "message": "Login successful",
             "username": user.username,
@@ -266,8 +267,17 @@ def api_all_user_loans(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated])
 def create_loan_category(request):
+    # Debug logging
+    print(f"User: {request.user}")
+    print(f"Is authenticated: {request.user.is_authenticated}")
+    print(f"Is staff: {request.user.is_staff}")
+    print(f"Session key: {request.session.session_key}")
+    
+    if not request.user.is_staff:
+        return Response({"error": "Admin access required"}, status=403)
+    
     name = request.data.get("name")
     description = request.data.get("description")
     if not name:

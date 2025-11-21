@@ -9,7 +9,7 @@ REACT_APP_DIST_DIR = BASE_DIR / 'app' / 'dist'
 # Security
 SECRET_KEY = 'your-secret-key'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 LOGIN_URL = '/accounts/login/'
 
@@ -78,12 +78,17 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 # Session and CSRF cookie settings for cross-origin
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database-backed sessions
+SESSION_COOKIE_SAMESITE = 'Lax'  # Lax works with HTTP
+SESSION_COOKIE_HTTPONLY = False  # Set to False for debugging
+SESSION_COOKIE_SECURE = False  # False for HTTP development
+SESSION_COOKIE_DOMAIN = 'localhost'  # Explicitly set to localhost
+SESSION_COOKIE_NAME = 'sessionid'  # Explicit session cookie name
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+CSRF_COOKIE_SAMESITE = 'Lax'  # Lax works with HTTP
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = False  # False for HTTP development
+CSRF_COOKIE_DOMAIN = 'localhost'  # Explicitly set to localhost
 
 # REST Framework settings
 REST_FRAMEWORK = {

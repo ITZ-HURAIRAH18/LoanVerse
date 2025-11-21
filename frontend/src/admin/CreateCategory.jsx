@@ -29,28 +29,19 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   setMessage("");
 
+  // Ensure CSRF cookie exists
+  const csrf = getCookie("csrftoken");
+  if (!csrf) {
+    // Call GET endpoint to force CSRF cookie set
+    await axiosInstance.get("/csrf/"); 
+  }
+
   try {
-    await axiosInstance.get("/csrf/");
-    const res = await axiosInstance.post(
-
-      "/create-category/",
-      formData,
-      {
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),   // ✔ CSRF for Django
-        }
-      }
-    );
-
+    const res = await axiosInstance.post("/create-category/", formData);
     setMessage("✅ Category created successfully!");
     setFormData({ name: "", description: "" });
-
   } catch (err) {
-    if (err.response) {
-      setMessage(err.response.data.error || "Something went wrong.");
-    } else {
-      setMessage("Error connecting to the server.");
-    }
+    setMessage(err.response?.data?.error || "Something went wrong.");
   }
 };
 

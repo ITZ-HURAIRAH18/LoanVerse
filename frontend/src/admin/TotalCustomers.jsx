@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axiosInstance from "../axiosfile/axios";
 
 // Animation for each table row
 const rowVariants = {
@@ -24,14 +25,12 @@ const TotalCustomers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/admin/customers/", {
-          credentials: "include",
-        });
-        const data = await res.json();
-        setCustomers(data.customers || []);
+        const res = await axiosInstance.get("/admin/customers/");
+
+        setCustomers(res.data.customers || []);
       } catch (error) {
         console.error("Error fetching customers:", error);
-        setCustomers([]); // fallback
+        setCustomers([]);
       }
     };
 
@@ -93,9 +92,8 @@ const TotalCustomers = () => {
                       initial="hidden"
                       animate="visible"
                       exit="hidden"
-                      className={`transition-shadow duration-300 ${
-                        idx % 2 === 0 ? "bg-white" : "bg-indigo-50"
-                      } hover:shadow-xl hover:bg-indigo-100 cursor-pointer`}
+                      className={`transition-shadow duration-300 ${idx % 2 === 0 ? "bg-white" : "bg-indigo-50"
+                        } hover:shadow-xl hover:bg-indigo-100 cursor-pointer`}
                     >
                       <td className="py-4 px-6 font-mono">{customer.id}</td>
                       <td className="py-4 px-6 font-semibold truncate max-w-[200px]">
@@ -128,9 +126,8 @@ const TotalCustomers = () => {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-xl bg-indigo-200 hover:bg-indigo-300 transition-all duration-200 ${
-                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`px-4 py-2 rounded-xl bg-indigo-200 hover:bg-indigo-300 transition-all duration-200 ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               Previous
             </button>
@@ -140,9 +137,8 @@ const TotalCustomers = () => {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-xl bg-indigo-200 hover:bg-indigo-300 transition-all duration-200 ${
-                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`px-4 py-2 rounded-xl bg-indigo-200 hover:bg-indigo-300 transition-all duration-200 ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               Next
             </button>
