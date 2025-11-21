@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { DollarSign, CheckCircle, XCircle, Users } from "lucide-react";
 import axios from "axios";
+import axiosInstance from "../axiosfile/axios";
 
 // 💡 Icon mapping
 const iconBlueClass = "w-7 h-7 text-blue-600";
@@ -106,10 +107,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get("/api/admin-dashboard/", {
-          withCredentials: true,
-        });
-        setAdminStats(Array.isArray(response.data.stats) ? response.data.stats : []);
+        const response = await axiosInstance.get("/admin-dashboard/");
+
+        setAdminStats(
+          Array.isArray(response.data.stats) ? response.data.stats : []
+        );
+
         setName(response.data.first_name || "Admin");
       } catch (err) {
         console.error("Error fetching admin dashboard data:", err);
@@ -170,7 +173,7 @@ const AdminDashboard = () => {
     setLlmResponse("");
     // IMPORTANT: Replace "YOUR_API_KEY" with your actual Gemini API key.
     // In a real application, you should load this securely (e.g., from environment variables).
-    const apiKey = "AIzaSyBWkDcaP0O0D6NfTzFhYe9FVEsMGEtRvPc"; 
+    const apiKey = "AIzaSyBWkDcaP0O0D6NfTzFhYe9FVEsMGEtRvPc";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     try {

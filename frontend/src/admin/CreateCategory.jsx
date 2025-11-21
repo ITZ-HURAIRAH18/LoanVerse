@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import axiosInstance from "../axiosfile/axios";
 
 const CreateCategory = () => {
   const [formData, setFormData] = useState({ name: "", description: "" });
@@ -24,33 +25,32 @@ const CreateCategory = () => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
 
-    try {
-      const res = await fetch("/api/create-category/", {
-        method: "POST",
+  try {
+    const res = await axiosInstance.post(
+      "/create-category/",
+      formData,
+      {
         headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage("✅ Category created successfully!");
-        setFormData({ name: "", description: "" });
-      } else {
-        setMessage(data.error || "Something went wrong.");
+          "X-CSRFToken": getCookie("csrftoken"),   // ✔ CSRF for Django
+        }
       }
-    } catch (err) {
+    );
+
+    setMessage("✅ Category created successfully!");
+    setFormData({ name: "", description: "" });
+
+  } catch (err) {
+    if (err.response) {
+      setMessage(err.response.data.error || "Something went wrong.");
+    } else {
       setMessage("Error connecting to the server.");
     }
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-50 via-white to-indigo-100 py-12 px-4 flex items-center justify-center overflow-hidden">

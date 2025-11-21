@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Link } from "react-router-dom";
+import axiosInstance from "../axiosfile/axios";
 
 const rowVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -22,19 +23,16 @@ const CategoryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const fetchCategories = async () => {
-    try {
-      // This fetch is correct: /api/categories/
-      const res = await fetch("http://127.0.0.1:8000/api/categories/", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setCategories(data.categories || []);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-      setCategories([]);
-    }
-  };
+const fetchCategories = async () => {
+  try {
+    const res = await axiosInstance.get("/categories/");
+
+    setCategories(res.data.categories || []);
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    setCategories([]);
+  }
+};
 
   useEffect(() => {
     fetchCategories();

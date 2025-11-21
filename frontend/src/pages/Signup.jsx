@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserPlus } from "lucide-react";
 import { getCSRFToken } from "../utils/csrf";
+import axiosInstance from "../axiosfile/axios";
 // adjust path if needed
 
 const Signup = () =>
@@ -21,31 +22,32 @@ const Signup = () =>
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e) =>
-{
-    e.preventDefault();
-    try {
-      const res = await fetch("/api/signup/", {
-        method: "POST",
+  try {
+    const res = await axiosInstance.post(
+      "/signup/",
+      formData,
+      {
         headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken(),
+          "X-CSRFToken": getCSRFToken(),   // ✔ send csrf
         },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        navigate("/login");
-      } else {
-        setErrors(data);
+        withCredentials: true,              // ✔ send cookies (sessionid + csrftoken)
       }
-    } catch {
+    );
+
+    navigate("/login");
+
+  } catch (error) {
+    if (error.response) {
+      setErrors(error.response.data);
+    } else {
       setErrors({ general: "Signup failed. Try again later." });
     }
-  };
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 flex items-center justify-center px-4">
