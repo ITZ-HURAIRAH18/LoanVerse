@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.db.models import Sum
@@ -49,7 +49,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt  # only for testing — not recommended for production
 @api_view(['POST'])
-@permission_classes([])
+@permission_classes([AllowAny])
 def signup_api_view(request):
     serializer = CustomUserCreationSerializer(data=request.data)
     if serializer.is_valid():
@@ -60,6 +60,7 @@ def signup_api_view(request):
 
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_api_view(request):
     username = request.data.get("username")
     password = request.data.get("password")
@@ -83,7 +84,8 @@ def logout_api_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
 def get_csrf_token(request):
     """Endpoint to get CSRF token"""
     return Response({"detail": "CSRF cookie set"})

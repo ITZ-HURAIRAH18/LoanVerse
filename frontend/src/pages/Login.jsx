@@ -36,11 +36,10 @@ document.cookie !== "") {
 {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/login/", formData, {
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-      });
+      // Ensure CSRF token is set before login
+      await axiosInstance.get("/csrf/");
+      
+      const res = await axiosInstance.post("/login/", formData);
 
       if (res.status === 200) {
         localStorage.setItem("user", JSON.stringify(res.data));

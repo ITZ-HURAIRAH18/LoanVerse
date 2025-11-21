@@ -30,6 +30,7 @@ const handleSubmit = async (e) => {
   setMessage("");
 
   try {
+    await axiosInstance.get("/csrf/");
     const res = await axiosInstance.post(
 
       "/create-category/",

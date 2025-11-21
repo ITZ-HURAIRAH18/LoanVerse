@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserPlus } from "lucide-react";
-import { getCSRFToken } from "../utils/csrf";
 import axiosInstance from "../axiosfile/axios";
-// adjust path if needed
 
 const Signup = () =>
 {
@@ -22,31 +20,26 @@ const Signup = () =>
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-const handleSubmit = async (e) => {
-  e.preventDefault();
 
-  try {
-    const res = await axiosInstance.post(
-      "/signup/",
-      formData,
-      {
-        headers: {
-          "X-CSRFToken": getCSRFToken(),   // ✔ send csrf
-        },
-        withCredentials: true,              // ✔ send cookies (sessionid + csrftoken)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Ensure CSRF token is set before signup
+      await axiosInstance.get("/csrf/");
+      
+      const res = await axiosInstance.post("/signup/", formData);
+
+      navigate("/login");
+
+    } catch (error) {
+      if (error.response) {
+        setErrors(error.response.data);
+      } else {
+        setErrors({ general: "Signup failed. Try again later." });
       }
-    );
-
-    navigate("/login");
-
-  } catch (error) {
-    if (error.response) {
-      setErrors(error.response.data);
-    } else {
-      setErrors({ general: "Signup failed. Try again later." });
     }
-  }
-};
+  };
 
 
   return (
