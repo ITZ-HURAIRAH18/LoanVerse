@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogIn } from "lucide-react";
+import axiosInstance from "../axiosfile/axios";
 
 const Login = () =>
 {
@@ -35,25 +36,18 @@ document.cookie !== "") {
 {
     e.preventDefault();
     try {
-      const res = await fetch("/api/login/", {
-        method: "POST",
-        credentials: "include",
+      const res = await axiosInstance.post("/login/", formData, {
         headers: {
-          "Content-Type": "application/json",
           "X-CSRFToken": getCookie("csrftoken"),
         },
-        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("user", JSON.stringify(data));
-        navigate(data.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
-      } else {
-        setError(data.error || "Login failed");
+      if (res.status === 200) {
+        localStorage.setItem("user", JSON.stringify(res.data));
+        navigate(res.data.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
       }
     } catch (err) {
-      setError("An error occurred during login");
+      setError(err.response?.data?.error || "An error occurred during login");
       console.error(err);
     }
   };

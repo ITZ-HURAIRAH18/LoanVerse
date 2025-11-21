@@ -1,6 +1,7 @@
 // src/pages/Logout.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../axiosfile/axios";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -8,13 +9,10 @@ const Logout = () => {
   useEffect(() => {
     const logoutUser = async () => {
       try {
-        await fetch("http://127.0.0.1:8000/api/logout/", {
-          method: "POST",
-          credentials: "include",
-        });
+        await axiosInstance.post("/logout/");
 
         // Optional: Clear any localStorage or state here
-        // localStorage.removeItem("user");
+        localStorage.removeItem("user");
 
         navigate("/login");
       } catch (error) {
