@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axiosInstance from "../axiosfile/axios";
 
 // Row animation config
 const rowVariants = {
@@ -21,22 +22,19 @@ const ApprovedLoans = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  useEffect(() => {
-    const fetchApprovedLoans = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/approved-loans/", {
-          credentials: "include",
-        });
-        const data = await response.json();
-        setLoans(data.loans || []);
-      } catch (error) {
-        console.error("Error fetching approved loans:", error);
-        setLoans([]); // fallback
-      }
-    };
+ useEffect(() => {
+  const fetchApprovedLoans = async () => {
+    try {
+      const res = await axiosInstance.get("/approved-loans/");
+      setLoans(res.data.loans || []);
+    } catch (error) {
+      console.error("Error fetching approved loans:", error);
+      setLoans([]); // fallback
+    }
+  };
 
-    fetchApprovedLoans();
-  }, []);
+  fetchApprovedLoans();
+}, []);
 
   if (loans === null) {
     return (

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axiosInstance from "../axiosfile/axios";
 
 const EditCategory = () => {
   const { id } = useParams();
@@ -15,29 +16,25 @@ const EditCategory = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    const fetchCategory = async () => {
-      try {
-        const res = await fetch(`/api/categories/${id}/`, {
-          credentials: "include",
-        });
+useEffect(() => {
+  const fetchCategory = async () => {
+    try {
+      const res = await axiosInstance.get(`/categories/${id}/`);
+      
+      setFormData({
+        name: res.data.name || "",
+        description: res.data.description || "",
+      });
+    } catch (err) {
+      console.error("Error fetching category:", err);
+      setError("⚠️ Failed to load category data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!res.ok) throw new Error("Failed to fetch category");
-
-        const data = await res.json();
-        setFormData({
-          name: data.name || "",
-          description: data.description || "",
-        });
-      } catch (err) {
-        setError("⚠️ Failed to load category data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategory();
-  }, [id]);
+  fetchCategory();
+}, [id]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({

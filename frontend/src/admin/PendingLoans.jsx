@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axiosInstance from "../axiosfile/axios";
 
 // Animation config
 const rowVariants = {
@@ -35,41 +36,27 @@ const PendingLoans = () => {
     }
     return cookieValue;
   }
+const fetchLoans = async () => {
+  try {
+    const res = await axiosInstance.get("/pending-loans/");
+    setLoans(res.data.loans || []);
+  } catch (error) {
+    console.error("Error fetching pending loans:", error);
+    setLoans([]); // fallback
+  }
+};
 
-  const fetchLoans = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/pending-loans/", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setLoans(data.loans);
-    } catch (error) {
-      console.error("Error fetching pending loans:", error);
-      setLoans([]); // fallback
+ const handleAction = async (loanId, action) => {
+  try {
+    const res = await axiosInstance.post(`/process-loan/${loanId}/${action}/`);
+    
+    if (res.data.success) {
+      fetchLoans(); // Refresh list
     }
-  };
-
-  const handleAction = async (loanId, action) => {
-    try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/process-loan/${loanId}/${action}/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          credentials: "include",
-        }
-      );
-      const result = await res.json();
-      if (result.success) {
-        fetchLoans(); // Refresh list
-      }
-    } catch (err) {
-      console.error("Error processing loan:", err);
-    }
-  };
+  } catch (err) {
+    console.error("Error processing loan:", err);
+  }
+};
 
   useEffect(() => {
     fetchLoans();
