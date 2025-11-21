@@ -32,7 +32,7 @@ urlpatterns = [
     # 💼 Loan APIs for Users
     path('api/loan-history/', loan_history_api, name='loan_history_api'),
     path('api/pay-loan/<int:loan_id>/', pay_loan, name='pay_loan'),
-    path('apply-loan/', apply_loan, name='apply_loan'),  # used only if form-based fallback exists
+    path('api/apply-loan/', apply_loan, name='apply_loan'),  # used only if form-based fallback exists
     path('api/loan-categories/', loan_categories_api, name='loan_categories_api'),
     path('api/transaction-history/', transaction_history_api, name='transaction_history_api'),
 

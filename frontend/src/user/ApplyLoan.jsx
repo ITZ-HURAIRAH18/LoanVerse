@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import axiosInstance from "../axiosfile/axios";
 
-const ApplyLoan = () =>
-{
+const ApplyLoan = () => {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     category: "",
@@ -12,51 +12,41 @@ const ApplyLoan = () =>
   });
   const [message, setMessage] = useState("");
 
-  useEffect(() =>
-{
-    fetch("/api/loan-categories/")
-      .then((res) =>
-res.json())
-      .then((data) =>
-setCategories(data))
-      .catch((err) =>
-console.error("Failed to load categories:", err));
+  // Fetch loan categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axiosInstance.get("/loan-categories/");
+        setCategories(res.data || []);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
-  const getCookie = (name) =>
-{
-    let cookieValue = null;
-    if (document.cookie &&
-document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let cookie of cookies) {
-        if (cookie.trim().startsWith(name + "=")) {
-          cookieValue = decodeURIComponent(cookie.trim().substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  };
-
-  const handleSubmit = async (e) =>
-{
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
 
-    const res = await fetch("/apply-loan/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (res.ok) {
-      setMessage("✅ Loan request submitted successfully!");
-      setFormData({ category: "", reason: "", amount: "", term_years: "" });
-    } else {
-      setMessage("❌ Failed to submit loan request.");
+    try {
+      const res = await axiosInstance.post("/apply-loan/", formData);
+      if (res.status === 200 || res.status === 201) {
+        setMessage("✅ Loan request submitted successfully!");
+        setFormData({ category: "", reason: "", amount: "", term_years: "" });
+      } else {
+        setMessage("❌ Failed to submit loan request.");
+      }
+    } catch (err) {
+      console.error("Error submitting loan request:", err);
+      if (err.response && err.response.data && err.response.data.error) {
+        setMessage(`❌ ${err.response.data.error}`);
+      } else {
+        setMessage("❌ Failed to submit loan request.");
+      }
     }
   };
 
@@ -73,6 +63,7 @@ document.cookie !== "") {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Category */}
           <div>
             <label
               htmlFor="category"
@@ -85,13 +76,13 @@ document.cookie !== "") {
               name="category"
               value={formData.category}
               onChange={(e) =>
-setFormData({ ...formData, category: e.target.value })}
+                setFormData({ ...formData, category: e.target.value })
+              }
               required
               className="w-full px-4 py-2 border border-blue-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">Select a category</option>
-              {categories.map((cat) =>
-(
+              {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
@@ -99,6 +90,7 @@ setFormData({ ...formData, category: e.target.value })}
             </select>
           </div>
 
+          {/* Reason */}
           <div>
             <label
               htmlFor="reason"
@@ -112,12 +104,14 @@ setFormData({ ...formData, category: e.target.value })}
               rows="4"
               value={formData.reason}
               onChange={(e) =>
-setFormData({ ...formData, reason: e.target.value })}
+                setFormData({ ...formData, reason: e.target.value })
+              }
               required
               className="w-full px-4 py-2 border border-blue-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
+          {/* Amount */}
           <div>
             <label
               htmlFor="amount"
@@ -131,12 +125,14 @@ setFormData({ ...formData, reason: e.target.value })}
               name="amount"
               value={formData.amount}
               onChange={(e) =>
-setFormData({ ...formData, amount: e.target.value })}
+                setFormData({ ...formData, amount: e.target.value })
+              }
               required
               className="w-full px-4 py-2 border border-blue-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
+          {/* Term */}
           <div>
             <label
               htmlFor="term_years"
@@ -150,7 +146,8 @@ setFormData({ ...formData, amount: e.target.value })}
               name="term_years"
               value={formData.term_years}
               onChange={(e) =>
-setFormData({ ...formData, term_years: e.target.value })}
+                setFormData({ ...formData, term_years: e.target.value })
+              }
               required
               className="w-full px-4 py-2 border border-blue-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -163,8 +160,7 @@ setFormData({ ...formData, term_years: e.target.value })}
             Submit Loan Request
           </button>
 
-          {message &&
-(
+          {message && (
             <p
               className={`text-center text-sm mt-4 select-none ${
                 message.startsWith("✅") ? "text-green-600" : "text-red-600"
