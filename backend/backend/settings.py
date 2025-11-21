@@ -33,6 +33,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'app.middleware.AuthDebugMiddleware',  # Debug middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -79,16 +80,18 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 # Session and CSRF cookie settings for cross-origin
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database-backed sessions
-SESSION_COOKIE_SAMESITE = 'Lax'  # Lax works with HTTP
+SESSION_COOKIE_SAMESITE = None  # None for cross-origin (requires Secure in production)
 SESSION_COOKIE_HTTPONLY = False  # Set to False for debugging
-SESSION_COOKIE_SECURE = False  # False for HTTP development
-SESSION_COOKIE_DOMAIN = 'localhost'  # Explicitly set to localhost
+SESSION_COOKIE_SECURE = False  # Must be False for HTTP development
+# SESSION_COOKIE_DOMAIN not set - will use default (current domain)
 SESSION_COOKIE_NAME = 'sessionid'  # Explicit session cookie name
+SESSION_COOKIE_PATH = '/'  # Available for all paths
 SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
-CSRF_COOKIE_SAMESITE = 'Lax'  # Lax works with HTTP
+CSRF_COOKIE_SAMESITE = None  # None for cross-origin
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False  # False for HTTP development
-CSRF_COOKIE_DOMAIN = 'localhost'  # Explicitly set to localhost
+CSRF_COOKIE_SECURE = False  # Must be False for HTTP development
+# CSRF_COOKIE_DOMAIN not set - will use default (current domain)
+CSRF_COOKIE_PATH = '/'  # Available for all paths
 
 # REST Framework settings
 REST_FRAMEWORK = {

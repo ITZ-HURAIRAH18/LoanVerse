@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axiosInstance from "../axiosfile/axios";
 
 // Animation for each table row
 const rowVariants = {
@@ -21,22 +22,19 @@ const AdminLoans = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  useEffect(() => {
-    const fetchLoans = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/loans/", {
-          credentials: "include",
-        });
-        const data = await res.json();
-        setLoans(data.loans || []);
-      } catch (err) {
-        console.error("Failed to fetch loans", err);
-        setLoans([]); // fallback on error
-      }
-    };
+useEffect(() => {
+  const fetchLoans = async () => {
+    try {
+      const res = await axiosInstance.get("/loans/");
+      setLoans(res.data.loans || []);
+    } catch (err) {
+      console.error("Failed to fetch loans", err);
+      setLoans([]); // fallback on error
+    }
+  };
 
-    fetchLoans();
-  }, []);
+  fetchLoans();
+}, []);
 
   if (loans === null) {
     return (

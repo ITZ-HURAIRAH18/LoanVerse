@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import axiosInstance from "../axiosfile/axios";
 
 const rowVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -19,21 +20,23 @@ const AdminUserLoans = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  useEffect(() => {
-    fetch("api/user-loans/", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // 🔥 Filter out rejected loans
-        const filtered = data.loans.filter((loan) => loan.status !== "Rejected");
-        setLoans(filtered);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch loans:", err);
-        setLoans([]);
-      });
-  }, []);
+useEffect(() => {
+  const fetchUserLoans = async () => {
+    try {
+      const res = await axiosInstance.get("/user-loans/");
+      
+      // 🔥 Filter out rejected loans
+      const filtered = res.data.loans.filter((loan) => loan.status !== "Rejected");
+      setLoans(filtered);
+
+    } catch (err) {
+      console.error("Failed to fetch loans:", err);
+      setLoans([]); // fallback
+    }
+  };
+
+  fetchUserLoans();
+}, []);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
