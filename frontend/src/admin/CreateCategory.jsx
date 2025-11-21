@@ -31,6 +31,7 @@ const handleSubmit = async (e) => {
 
   try {
     const res = await axiosInstance.post(
+
       "/create-category/",
       formData,
       {

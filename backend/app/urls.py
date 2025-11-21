@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 from .views import (
     index, signup_api_view, login_api_view, logout_api_view,
-    get_user_role, admin_dashboard_api, user_dashboard_api,
+    get_user_role, get_csrf_token, admin_dashboard_api, user_dashboard_api,
     total_customers_api, api_loans, api_pending_loans, api_approved_loans,
     api_rejected_loans, create_loan_category, category_list, category_detail,
     api_all_user_loans, loan_history_api, apply_loan, loan_categories_api,
@@ -17,6 +17,7 @@ urlpatterns = [
     path('', index, name='homepage'),
 
     # 🔐 Authentication APIs
+    path('api/csrf/', get_csrf_token, name='get_csrf_token'),
     path('api/signup/', signup_api_view, name='signup_api'),
     path('api/login/', login_api_view, name='login_api'),
     path('api/logout/', logout_api_view, name='logout_api'),

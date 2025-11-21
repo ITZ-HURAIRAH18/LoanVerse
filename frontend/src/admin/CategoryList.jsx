@@ -43,19 +43,16 @@ const fetchCategories = async () => {
 
     try {
       setDeleting(id);
-      // This fetch is correct: /api/categories/{id}/ (DELETE)
-      const res = await fetch(`http://127.0.0.1:8000/api/categories/${id}/`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const res = await axiosInstance.delete(`/categories/${id}/`);
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 204) {
         setCategories((prev) => prev.filter((cat) => cat.id !== id));
       } else {
         alert("Failed to delete category.");
       }
     } catch (error) {
       console.error("Delete error:", error);
+      alert("Failed to delete category.");
     } finally {
       setDeleting(null);
     }

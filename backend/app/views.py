@@ -83,6 +83,13 @@ def logout_api_view(request):
 
 
 @api_view(['GET'])
+@permission_classes([])
+def get_csrf_token(request):
+    """Endpoint to get CSRF token"""
+    return Response({"detail": "CSRF cookie set"})
+
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_role(request):
     user = request.user
@@ -256,48 +263,45 @@ def api_all_user_loans(request):
 
 
 
-@csrf_exempt
-@login_required
-@user_passes_test(is_admin)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def create_loan_category(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        name = data.get("name")
-        description = data.get("description")
-        if not name:
-            return JsonResponse({"error": "Name is required"}, status=400)
-        category = LoanCategory.objects.create(name=name, description=description)
-        return JsonResponse({"success": True, "category": {"id": category.id, "name": category.name}})
+    name = request.data.get("name")
+    description = request.data.get("description")
+    if not name:
+        return Response({"error": "Name is required"}, status=400)
+    category = LoanCategory.objects.create(name=name, description=description)
+    return Response({"success": True, "category": {"id": category.id, "name": category.name}})
 
 
-@csrf_exempt
-@login_required
-@user_passes_test(is_admin)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def category_list(request):
-    if request.method == "GET":
-        categories = LoanCategory.objects.all()
-        data = [{"id": c.id, "name": c.name, "description": c.description} for c in categories]
-        return JsonResponse({"categories": data})
+    categories = LoanCategory.objects.all()
+    data = [{"id": c.id, "name": c.name, "description": c.description} for c in categories]
+    return Response({"categories": data})
 
 
-@csrf_exempt
-@login_required
-@user_passes_test(is_admin)
+@api_view(['GET', 'POST', 'DELETE'])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def category_detail(request, category_id):
     try:
         category = LoanCategory.objects.get(id=category_id)
     except LoanCategory.DoesNotExist:
-        return JsonResponse({"error": "Not found"}, status=404)
+        return Response({"error": "Not found"}, status=404)
 
     if request.method == "GET":
-        return JsonResponse({"id": category.id, "name": category.name, "description": category.description})
+        return Response({"id": category.id, "name": category.name, "description": category.description})
 
     elif request.method == "POST":
-        data = json.loads(request.body)
-        category.name = data.get("name", category.name)
-        category.description = data.get("description", category.description)
+        category.name = request.data.get("name", category.name)
+        category.description = request.data.get("description", category.description)
         category.save()
-        return JsonResponse({"success": True})
+        return Response({"success": True})
+
+    elif request.method == "DELETE":
+        category.delete()
+        return Response({"success": True}, status=204)
 
     elif request.method == "DELETE":
         category.delete()
