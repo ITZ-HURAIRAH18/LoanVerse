@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import axiosInstance from "../axiosfile/axios";
+
+
 
 const PayPalModal = ({ amount, loanId, onClose, onSuccess }) => {
   useEffect(() => {
@@ -17,41 +20,38 @@ const PayPalModal = ({ amount, loanId, onClose, onSuccess }) => {
     window.paypal
       .Buttons({
         style: { layout: "vertical", color: "blue", shape: "pill", label: "pay" },
+
         createOrder: (data, actions) => {
           return actions.order.create({
             purchase_units: [{ amount: { value: amount.toFixed(2) } }],
           });
         },
+
         onApprove: (data, actions) => {
-          return actions.order.capture().then((orderData) => {
+          return actions.order.capture().then(async (orderData) => {
             const transaction = orderData.purchase_units[0].payments.captures[0];
-            fetch(`/api/pay-loan/${loanId}/`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken(),
-              },
-              credentials: "include",
-              body: JSON.stringify({
-                transaction_id: transaction.id,
-                amount: transaction.amount.value,
-              }),
-            })
-              .then((res) => {
-                if (res.ok) {
-                  alert("✅ Payment successful!");
-                  onSuccess();
-                } else {
-                  alert("⚠ Server failed to record payment.");
+
+            try {
+              const response = await axiosInstance.post(
+                `/pay-loan/${loanId}/`,
+                {
+                  transaction_id: transaction.id,
+                  amount: transaction.amount.value,
                 }
-              })
-              .catch((err) => {
-                console.error("Error saving payment:", err);
-                alert("❌ Network error.");
-              });
+              );
+
+              alert("✅ Payment successful!");
+              onSuccess();
+
+            } catch (err) {
+              console.error("Error saving payment:", err);
+              alert("⚠ Server failed to record payment.");
+            }
           });
         },
+
         onCancel: onClose,
+
         onError: (err) => {
           console.error("PayPal error:", err);
           alert("❌ Payment error.");
@@ -60,16 +60,6 @@ const PayPalModal = ({ amount, loanId, onClose, onSuccess }) => {
       })
       .render("#paypal-button-container");
   }, []);
-
-  const getCSRFToken = () => {
-    const name = "csrftoken=";
-    const cookies = decodeURIComponent(document.cookie).split(";");
-    for (let cookie of cookies) {
-      const c = cookie.trim();
-      if (c.startsWith(name)) return c.substring(name.length);
-    }
-    return "";
-  };
 
   return ReactDOM.createPortal(
     <div
@@ -117,6 +107,8 @@ const PayPalModal = ({ amount, loanId, onClose, onSuccess }) => {
   );
 };
 
+
+
 const rowVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i) => ({
@@ -135,34 +127,36 @@ const LoanHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 6;
 
-  useEffect(() => {
-    fetch("/api/loan-history/", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        setLoans(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching loan history:", err);
-        setLoading(false);
-      });
 
-    const addPayPalScript = () => {
-      const script = document.createElement("script");
-      script.src =
-        "https://www.paypal.com/sdk/js?client-id=ATSZ9oB0Z0XePLBJ4Ue2sUa3lUUB8BcWxLiK2eoguOM5vObizoDs4fh57Dj9PCCGmSRuKaXB7FqoYZqX&currency=USD";
-      script.async = true;
-      script.onload = () => setSdkReady(true);
-      script.onerror = () => console.error("PayPal SDK failed to load.");
-      document.body.appendChild(script);
-    };
 
-    if (!window.paypal) {
-      addPayPalScript();
-    } else {
-      setSdkReady(true);
-    }
-  }, []);
+useEffect(() => {
+  axiosInstance
+    .get("/loan-history/")
+    .then((res) => {
+      setLoans(res.data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Error fetching loan history:", err);
+      setLoading(false);
+    });
+
+  const addPayPalScript = () => {
+    const script = document.createElement("script");
+    script.src =
+      "https://www.paypal.com/sdk/js?client-id=ATSZ9oB0Z0XePLBJ4Ue2sUa3lUUB8BcWxLiK2eoguOM5vObizoDs4fh57Dj9PCCGmSRuKaXB7FqoYZqX&currency=USD";
+    script.async = true;
+    script.onload = () => setSdkReady(true);
+    script.onerror = () => console.error("PayPal SDK failed to load.");
+    document.body.appendChild(script);
+  };
+
+  if (!window.paypal) {
+    addPayPalScript();
+  } else {
+    setSdkReady(true);
+  }
+}, []);
 
   const handlePayClick = (loanId, amount) => {
     if (!sdkReady) {

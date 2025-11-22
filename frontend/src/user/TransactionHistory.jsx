@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import axiosInstance from "../axiosfile/axios";
 
 const rowVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -16,17 +17,18 @@ const TransactionHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 6;
 
-  useEffect(() => {
-    fetch("/api/transaction-history/", {
-      credentials: "include",
+
+
+useEffect(() => {
+  axiosInstance
+    .get("/transaction-history/")
+    .then((res) => {
+      setTransactions(res.data.transactions || []);
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch transaction history");
-        return res.json();
-      })
-      .then((data) => setTransactions(data.transactions || []))
-      .catch((err) => console.error("Error:", err));
-  }, []);
+    .catch((err) => {
+      console.error("Error fetching transaction history:", err);
+    });
+}, []);
 
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
