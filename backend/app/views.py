@@ -146,11 +146,68 @@ def total_customers_api(request):
 @user_passes_test(is_admin)
 def process_loan(request, loan_id, action):
     loan = get_object_or_404(LoanRequest, id=loan_id, status='Pending')
+    
     if action == "approve":
         loan.status = "Approved"
         loan.total_approved_amount = loan.request_amount  # ✅ Set approved amount
+        
+        # Send approval email to user
+        subject = 'Loan Application Approved!'
+        message = f"""
+Dear {loan.user.get_full_name() or loan.user.username},
+
+Great news! Your loan application has been APPROVED!
+
+Loan Details:
+- Category: {loan.category.name if loan.category else 'N/A'}
+- Approved Amount: ${loan.request_amount}
+- Term: {loan.term_years} years
+- Status: Approved
+
+You can now view your loan details and make payments through your dashboard.
+
+Congratulations!
+LoanVerse Team
+        """
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [loan.user.email],
+            fail_silently=False,
+        )
+        
     elif action == "reject":
         loan.status = "Rejected"
+        
+        # Send rejection email to user
+        subject = 'Loan Application Status Update'
+        message = f"""
+Dear {loan.user.get_full_name() or loan.user.username},
+
+We regret to inform you that your loan application has been reviewed and unfortunately cannot be approved at this time.
+
+Loan Details:
+- Category: {loan.category.name if loan.category else 'N/A'}
+- Requested Amount: ${loan.request_amount}
+- Term: {loan.term_years} years
+- Status: Rejected
+
+You may reapply for a loan in the future. If you have any questions, please contact our support team.
+
+Best regards,
+LoanVerse Team
+        """
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [loan.user.email],
+            fail_silently=False,
+        )
+    
     loan.save()
     return JsonResponse({"success": True, "status": loan.status})
 
