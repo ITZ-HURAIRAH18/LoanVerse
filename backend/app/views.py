@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.db.models import Sum
+from django.core.mail import send_mail
+from django.conf import settings
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -402,7 +404,9 @@ def apply_loan(request):
     try:
         data = request.data
         category = LoanCategory.objects.get(id=data['category'])
-        LoanRequest.objects.create(
+        
+        # Create loan request
+        loan_request = LoanRequest.objects.create(
             user=request.user,
             category=category,
             reason=data['reason'],
@@ -410,7 +414,60 @@ def apply_loan(request):
             term_years=data['term_years'],
             status='Pending'
         )
-        return Response({"success": True, "message": "Loan request submitted."}, status=201)
+        
+        # Send email to user
+        user_subject = 'Loan Application Received'
+        user_message = f"""
+Dear {request.user.get_full_name() or request.user.username},
+
+Thank you for applying for a loan with us!
+
+Loan Details:
+- Category: {category.name}
+- Amount: ${data['amount']}
+- Term: {data['term_years']} years
+- Status: Pending Review
+
+We have successfully received your loan application. Our team will review your request and get back to you soon.
+
+Best regards,
+LoanVerse Team
+        """
+        
+        send_mail(
+            user_subject,
+            user_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email],
+            fail_silently=False,
+        )
+        
+        # Send email to admin
+        admin_subject = f'New Loan Application from {request.user.username}'
+        admin_message = f"""
+New Loan Application Received:
+
+Applicant: {request.user.get_full_name() or request.user.username} ({request.user.email})
+Category: {category.name}
+Amount Requested: ${data['amount']}
+Term: {data['term_years']} years
+Reason: {data['reason']}
+Status: Pending Review
+
+Please log in to the admin panel to review and process this application.
+
+LoanVerse System
+        """
+        
+        send_mail(
+            admin_subject,
+            admin_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_EMAIL],
+            fail_silently=False,
+        )
+        
+        return Response({"success": True, "message": "Loan request submitted successfully. Check your email for confirmation."}, status=201)
     except Exception as e:
         return Response({"success": False, "message": str(e)}, status=400)
 
